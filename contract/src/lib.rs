@@ -7,8 +7,10 @@ use std::iter;
 
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::{
-    collections::UnorderedMap, env, json_types::U128, log, near_bindgen, AccountId,
-    BorshStorageKey, Timestamp,
+    collections::UnorderedMap,
+    env,
+    json_types::{U128, U64},
+    log, near_bindgen, AccountId, BorshStorageKey, Timestamp,
 };
 
 const EPOCH: u128 = 30 * 12;
@@ -22,8 +24,8 @@ pub enum StorageKey {
 
 #[derive(Debug, BorshSerialize, BorshDeserialize, PartialEq, Eq)]
 struct UserAccount {
-    pub order: u128,
-    pub withdraw_time: Timestamp,
+    pub order: U128,
+    pub withdraw_time: U64,
 }
 
 // Define the contract structure
@@ -48,8 +50,8 @@ impl Contract {
     pub(crate) fn add_user(&mut self, user_num: u64) {
         let user_account = AccountId::new_unchecked(user_num.to_string());
         let user_account_struct = UserAccount {
-            order: user_num as u128,
-            withdraw_time: env::block_timestamp_ms() + TWO_YEARS_IN_MS,
+            order: U128::from(user_num as u128),
+            withdraw_time: U64::from(env::block_timestamp_ms() + TWO_YEARS_IN_MS),
         };
         self.users.insert(&user_account, &user_account_struct);
     }
@@ -67,7 +69,10 @@ impl Contract {
             .users
             .get(&user_account)
             .expect("User account don't found");
-        user_account.order
+        for (_, user_account) in self.users.iter() {
+            log!("{:?}", user_account);
+        }
+        user_account.order.into()
     }
 
     pub(crate) fn get_users_num(&self) -> u64 {
