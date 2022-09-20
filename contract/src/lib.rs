@@ -52,7 +52,6 @@ impl Contract {
             withdraw_time: env::block_timestamp_ms() + TWO_YEARS_IN_MS,
         };
         self.users.insert(&user_account, &user_account_struct);
-        ёё
     }
 
     pub fn add_user_accounts(&mut self, started_num: u64, number_to_add: u64) -> u64 {
