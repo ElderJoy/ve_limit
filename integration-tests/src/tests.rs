@@ -25,8 +25,10 @@ async fn main() -> anyhow::Result<()> {
     // begin tests
     // test_calc_ve_order_sum_simple(&alice, &contract, &worker, 1_200_000).await?;
 
-    test_add_users(&alice, &contract, &worker, 0, 10).await?;
+    test_add_users(&alice, &contract, &worker, 0, 100).await?;
     test_get_user_order(&alice, &contract, &worker, 9).await?;
+    let blocks_to_advance = 10000;
+    worker.fast_forward(blocks_to_advance).await?;
     test_calc_ve_order_sum(&alice, &contract, &worker).await?;
 
     // Add a lot of users

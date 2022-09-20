@@ -30,7 +30,7 @@ struct UserAccount {
 #[near_bindgen]
 #[derive(BorshDeserialize, BorshSerialize)]
 pub struct Contract {
-    pub(crate) users: UnorderedMap<AccountId, UserAccount>,
+    pub(crate) users: UnorderedMap<u64, UserAccount>,
 }
 
 // Define the default, which automatically initializes the contract
@@ -46,12 +46,11 @@ impl Default for Contract {
 #[near_bindgen]
 impl Contract {
     pub(crate) fn add_user(&mut self, user_num: u64) {
-        let user_account = AccountId::new_unchecked(user_num.to_string());
         let user_account_struct = UserAccount {
             order: user_num as u128,
             withdraw_time: env::block_timestamp_ms() + TWO_YEARS_IN_MS,
         };
-        self.users.insert(&user_account, &user_account_struct);
+        self.users.insert(&user_num, &user_account_struct);
     }
 
     pub fn add_user_accounts(&mut self, started_num: u64, number_to_add: u64) -> u64 {
@@ -62,11 +61,7 @@ impl Contract {
     }
 
     pub fn get_user_order(&self, user_num: u64) -> u128 {
-        let user_account = AccountId::new_unchecked(user_num.to_string());
-        let user_account = self
-            .users
-            .get(&user_account)
-            .expect("User account don't found");
+        let user_account = self.users.get(&user_num).expect("User account don't found");
         user_account.order
     }
 
@@ -81,9 +76,9 @@ impl Contract {
         let mut ve_order_sum: u128 = 0;
         let cur_time = env::block_timestamp_ms();
         for (_, user_account) in &self.users {
-            // let remaining_days = (user_account.withdraw_time - cur_time) / ONE_DAY_IN_MS;
-            // let order_amount: u128 = user_account.order.into();
-            // ve_order_sum += order_amount * remaining_days as u128 / EPOCH;
+            let remaining_days = (user_account.withdraw_time - cur_time) / ONE_DAY_IN_MS;
+            let order_amount: u128 = user_account.order.into();
+            ve_order_sum += order_amount * remaining_days as u128 / EPOCH;
         }
 
         log!("ve_order_sum = {}", ve_order_sum);
@@ -115,9 +110,9 @@ mod tests {
     #[test]
     fn run_add_users() {
         let mut contract = Contract::default();
-        contract.add_user(100);
-        contract.add_user(100);
-        contract.add_user_accounts(101, 100);
+        contract.add_user_accounts(10, 100);
+        contract.add_user(110);
+        contract.add_user(110);
         assert_eq!(contract.get_users_num(), 101);
     }
 
@@ -139,7 +134,7 @@ mod tests {
     #[test]
     fn run_calc() {
         let mut contract = Contract::default();
-        contract.add_user_accounts(101, 10);
+        contract.add_user_accounts(0, 100);
         let ve_order_sum = contract.calc_ve_order_sum();
         println!("ve_order_sum = {}", ve_order_sum);
     }
