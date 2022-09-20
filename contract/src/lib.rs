@@ -18,6 +18,12 @@ const TWO_YEARS_IN_MS: u64 = ONE_DAY_IN_MS * 365 * 2;
 #[derive(Debug, BorshStorageKey, BorshDeserialize, BorshSerialize, PartialEq, Eq)]
 pub enum StorageKey {
     Users,
+    Indexes,
+}
+
+#[derive(Debug, BorshSerialize, BorshDeserialize)]
+struct TestIndex {
+    pub test_index: u128,
 }
 
 #[derive(Debug, BorshSerialize, BorshDeserialize, PartialEq, Eq)]
@@ -31,6 +37,7 @@ struct UserAccount {
 #[derive(BorshDeserialize, BorshSerialize)]
 pub struct Contract {
     pub(crate) users: UnorderedMap<AccountId, UserAccount>,
+    pub(crate) indexes: UnorderedMap<u64, TestIndex>,
 }
 
 // Define the default, which automatically initializes the contract
@@ -38,6 +45,7 @@ impl Default for Contract {
     fn default() -> Self {
         Self {
             users: UnorderedMap::new(StorageKey::Users),
+            indexes: UnorderedMap::new(StorageKey::Indexes),
         }
     }
 }
@@ -45,6 +53,40 @@ impl Default for Contract {
 // Implement the contract structure
 #[near_bindgen]
 impl Contract {
+    //#################################################################
+    pub(crate) fn add_index(&mut self, ind_num: u64) {
+        let index = TestIndex {
+            test_index: ind_num as u128,
+        };
+        self.indexes.insert(&ind_num, &index);
+    }
+
+    pub fn add_indexes(&mut self, started_num: u64, number_to_add: u64) -> u64 {
+        for index_num in started_num..started_num + number_to_add {
+            self.add_index(index_num);
+        }
+        self.indexes.len()
+    }
+
+    pub(crate) fn get_indexes_num(&self) -> u64 {
+        self.indexes.len()
+    }
+
+    pub fn get_index(&self, ind_num: u64) -> u128 {
+        let index = self.indexes.get(&ind_num).expect("Index num don't found");
+        index.test_index
+    }
+
+    pub fn get_index_sum(&self) -> u128 {
+        let mut index_sum = 0u128;
+        for (_, index) in &self.indexes {
+            index_sum += index.test_index;
+        }
+        index_sum
+    }
+
+    //#################################################################
+
     pub(crate) fn add_user(&mut self, user_num: u64) {
         let user_account = AccountId::new_unchecked(user_num.to_string());
         let user_account_struct = UserAccount {
@@ -111,6 +153,36 @@ impl Contract {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    //#################################################################
+
+    #[test]
+    fn run_add_indexes() {
+        let mut contract = Contract::default();
+        contract.add_index(100);
+        contract.add_index(100);
+        contract.add_indexes(101, 100);
+        assert_eq!(contract.get_indexes_num(), 101);
+    }
+
+    #[test]
+    fn run_get_index() {
+        let mut contract = Contract::default();
+        contract.add_indexes(0, 100);
+        assert_eq!(contract.get_index(0), 0);
+        assert_eq!(contract.get_index(10), 10);
+        assert_eq!(contract.get_index(99), 99);
+    }
+
+ 
+    #[test]
+    fn run_get_index_sum() {
+        let mut contract = Contract::default();
+        contract.add_indexes(0, 100);
+        assert_eq!(contract.get_index_sum(), 4950);
+    }
+
+    //#################################################################
 
     #[test]
     fn run_add_users() {

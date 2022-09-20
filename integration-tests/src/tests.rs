@@ -22,12 +22,16 @@ async fn main() -> anyhow::Result<()> {
         .await?
         .into_result()?;
 
+    test_add_indexes(&alice, &contract, &worker, 0, 100).await?;
+    test_get_index(&alice, &contract, &worker, 99).await?;
+    test_get_index_sum(&alice, &contract, &worker).await?;
+
     // begin tests
     // test_calc_ve_order_sum_simple(&alice, &contract, &worker, 1_200_000).await?;
 
-    test_add_users(&alice, &contract, &worker, 0, 10).await?;
-    test_get_user_order(&alice, &contract, &worker, 9).await?;
-    test_calc_ve_order_sum(&alice, &contract, &worker).await?;
+    // test_add_users(&alice, &contract, &worker, 0, 10).await?;
+    // test_get_user_order(&alice, &contract, &worker, 9).await?;
+    // test_calc_ve_order_sum(&alice, &contract, &worker).await?;
 
     // Add a lot of users
     // for users_num in 0..20 {
@@ -36,6 +40,7 @@ async fn main() -> anyhow::Result<()> {
     Ok(())
 }
 
+//#################################################################
 async fn test_add_users(
     user: &Account,
     contract: &Contract,
@@ -53,6 +58,65 @@ async fn test_add_users(
 
     // assert_eq!(message, "Howdy".to_string());
     println!("      users_num = {}", users_num);
+    Ok(())
+}
+
+async fn test_get_index(
+    user: &Account,
+    contract: &Contract,
+    worker: &Worker<Sandbox>,
+    num: u64,
+) -> anyhow::Result<()> {
+    let test_index: u128 = user
+        .call(&worker, contract.id(), "get_index")
+        .args_json(json!({ "ind_num": num }))?
+        .gas(300_000_000_000_000)
+        .transact()
+        .await?
+        .json()?;
+
+    // assert_eq!(message, "Howdy".to_string());
+    println!("      test_index = {}", test_index);
+    println!("      Passed ✅ test_get_inex");
+    Ok(())
+}
+
+async fn test_get_index_sum(
+    user: &Account,
+    contract: &Contract,
+    worker: &Worker<Sandbox>,
+) -> anyhow::Result<()> {
+    let index_sum: u128 = user
+        .call(&worker, contract.id(), "get_index_sum")
+        .gas(300_000_000_000_000)
+        .transact()
+        .await?
+        .json()?;
+
+    // assert_eq!(message, "Howdy".to_string());
+    println!("      index_sum = {}", index_sum);
+    println!("      Passed ✅ test_get_index_sum");
+    Ok(())
+}
+//#################################################################
+
+async fn test_add_indexes(
+    user: &Account,
+    contract: &Contract,
+    worker: &Worker<Sandbox>,
+    started_num: u64,
+    number_to_add: u64,
+) -> anyhow::Result<()> {
+    let users_num: u128 = user
+        .call(&worker, contract.id(), "add_indexes")
+        .args_json(json!({ "started_num": started_num, "number_to_add": number_to_add }))?
+        .gas(300_000_000_000_000)
+        .transact()
+        .await?
+        .json()?;
+
+    // assert_eq!(message, "Howdy".to_string());
+    println!("      indexes_num = {}", users_num);
     Ok(())
 }
 
