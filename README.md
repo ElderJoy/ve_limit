@@ -6,9 +6,11 @@ Quick Start
 
 Build and run tests locally
 
-npm install
-npm run build
-npm run test
+    npm install
+
+    npm run build
+    
+    npm run test
 
 Build and deploy your contract to TestNet with a temporary dev account:
 
