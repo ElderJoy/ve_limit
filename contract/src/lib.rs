@@ -76,7 +76,7 @@ impl Contract {
         user_account.order
     }
 
-    pub(crate) fn get_users_num(&self) -> u64 {
+    pub fn get_users_num(&self) -> u64 {
         self.users.len()
     }
 
