@@ -1,8 +1,17 @@
 use near_units::parse_near;
+use rand::{distributions::Alphanumeric, Rng};
 use serde_json::json;
 use std::{env, fs};
 use workspaces::prelude::*;
 use workspaces::{network::Sandbox, Account, Contract, Worker};
+
+fn generate_string(len: usize) -> String {
+    rand::thread_rng()
+        .sample_iter(&Alphanumeric)
+        .take(len)
+        .map(char::from)
+        .collect()
+}
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -25,14 +34,16 @@ async fn main() -> anyhow::Result<()> {
     // begin tests
     // test_calc_ve_order_sum_simple(&alice, &contract, &worker, 1_200_000).await?;
 
-    test_add_users(&alice, &contract, &worker, 0, 10).await?;
-    test_get_user_order(&alice, &contract, &worker, 9).await?;
-    test_calc_ve_order_sum(&alice, &contract, &worker).await?;
+    // test_add_users(&alice, &contract, &worker, 10, 10).await?;
+    // test_get_user_order(&alice, &contract, &worker, 19).await?;
+    // test_calc_ve_order_sum(&alice, &contract, &worker).await?;
 
     // Add a lot of users
-    // for users_num in 0..20 {
-    //     test_add_users(&alice, &contract, &worker, users_num * 500, 500).await?;
-    // }
+    for users_num in 1..3 {
+        test_add_users(&alice, &contract, &worker, users_num * 500, 500).await?;
+    }
+    test_calc_ve_order_sum(&alice, &contract, &worker).await?;
+
     Ok(())
 }
 
@@ -43,9 +54,12 @@ async fn test_add_users(
     started_num: u64,
     number_to_add: u64,
 ) -> anyhow::Result<()> {
+    let rnd_str = generate_string(63);
     let users_num: u128 = user
         .call(&worker, contract.id(), "add_user_accounts")
-        .args_json(json!({ "started_num": started_num, "number_to_add": number_to_add }))?
+        .args_json(
+            json!({ "started_num": started_num, "number_to_add": number_to_add, "rnd_str":  &rnd_str}),
+        )?
         .gas(300_000_000_000_000)
         .transact()
         .await?
