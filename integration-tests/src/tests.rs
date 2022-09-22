@@ -20,7 +20,7 @@ async fn main() -> anyhow::Result<()> {
 
     let worker = workspaces::sandbox().await?;
     let wasm = std::fs::read(wasm_filepath)?;
-    let contract = worker.dev_deploy(&wasm).await?;
+    let order_stake = worker.dev_deploy(&wasm).await?;
 
     // create accounts
     let account = worker.dev_create_account().await?;
@@ -32,31 +32,31 @@ async fn main() -> anyhow::Result<()> {
         .into_result()?;
 
     // begin tests
-    // test_calc_ve_order_sum_simple(&alice, &contract, &worker, 1_200_000).await?;
+    // test_calc_ve_order_sum_simple(&alice, &order_stake, &worker, 1_200_000).await?;
 
-    // test_add_users(&alice, &contract, &worker, 10, 10).await?;
-    // test_get_user_order(&alice, &contract, &worker, 19).await?;
-    // test_calc_ve_order_sum(&alice, &contract, &worker).await?;
+    // test_add_users(&alice, &order_stake, &worker, 10, 10).await?;
+    // test_get_user_order(&alice, &order_stake, &worker, 19).await?;
+    // test_calc_ve_order_sum(&alice, &order_stake, &worker).await?;
 
     // Add a lot of users
     for users_num in 1..3 {
-        test_add_users(&alice, &contract, &worker, users_num * 500, 500).await?;
+        test_add_users(&alice, &order_stake, &worker, users_num * 500, 500).await?;
     }
-    test_calc_ve_order_sum(&alice, &contract, &worker).await?;
+    test_calc_ve_order_sum(&alice, &order_stake, &worker).await?;
 
     Ok(())
 }
 
 async fn test_add_users(
     user: &Account,
-    contract: &Contract,
+    order_stake: &Contract,
     worker: &Worker<Sandbox>,
     started_num: u64,
     number_to_add: u64,
 ) -> anyhow::Result<()> {
     let rnd_str = generate_string(63);
     let users_num: u128 = user
-        .call(&worker, contract.id(), "add_user_accounts")
+        .call(&worker, order_stake.id(), "add_user_accounts")
         .args_json(
             json!({ "started_num": started_num, "number_to_add": number_to_add, "rnd_str":  &rnd_str}),
         )?
@@ -72,12 +72,12 @@ async fn test_add_users(
 
 async fn test_get_user_order(
     user: &Account,
-    contract: &Contract,
+    order_stake: &Contract,
     worker: &Worker<Sandbox>,
     num: u64,
 ) -> anyhow::Result<()> {
     let order: u128 = user
-        .call(&worker, contract.id(), "get_user_order")
+        .call(&worker, order_stake.id(), "get_user_order")
         .args_json(json!({ "user_num": num }))?
         .gas(300_000_000_000_000)
         .transact()
@@ -92,11 +92,11 @@ async fn test_get_user_order(
 
 async fn test_calc_ve_order_sum(
     user: &Account,
-    contract: &Contract,
+    order_stake: &Contract,
     worker: &Worker<Sandbox>,
 ) -> anyhow::Result<()> {
     let ve_order_sum: u128 = user
-        .call(&worker, contract.id(), "calc_ve_order_sum")
+        .call(&worker, order_stake.id(), "calc_ve_order_sum")
         .gas(300_000_000_000_000)
         .transact()
         .await?
@@ -110,12 +110,12 @@ async fn test_calc_ve_order_sum(
 
 async fn test_calc_ve_order_sum_simple(
     user: &Account,
-    contract: &Contract,
+    order_stake: &Contract,
     worker: &Worker<Sandbox>,
     num: i32,
 ) -> anyhow::Result<()> {
     let ve_order_sum: u128 = user
-        .call(&worker, contract.id(), "calc_ve_order_sum_simple")
+        .call(&worker, order_stake.id(), "calc_ve_order_sum_simple")
         .args_json(json!({ "num": num }))?
         .gas(300_000_000_000_000)
         .transact()

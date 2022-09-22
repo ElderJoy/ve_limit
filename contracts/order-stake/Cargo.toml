@@ -1,5 +1,5 @@
 [package]
-name = "ve_limit"
+name = "order-stake"
 version = "1.0.0"
 authors = ["Dmitry Blinov <dmitry@orderly.network>"]
 edition = "2021"
@@ -21,6 +21,3 @@ lto = true
 debug = false
 panic = "abort"
 overflow-checks = true
-
-[workspace]
-members = []

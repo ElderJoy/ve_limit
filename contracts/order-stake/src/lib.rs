@@ -38,13 +38,13 @@ struct LockedBalance {
 // Define the contract structure
 #[near_bindgen]
 #[derive(BorshDeserialize, BorshSerialize)]
-pub struct Contract {
+pub struct OrderStake {
     pub(crate) start_time: Timestamp,
     pub(crate) users: UnorderedMap<AccountId, LockedBalance>,
 }
 
 // Define the default, which automatically initializes the contract
-impl Default for Contract {
+impl Default for OrderStake {
     fn default() -> Self {
         Self {
             start_time: env::block_timestamp_ms(),
@@ -55,7 +55,7 @@ impl Default for Contract {
 
 // Implement the contract structure
 #[near_bindgen]
-impl Contract {
+impl OrderStake {
     pub fn get_unlock_time(&self, from: Timestamp, num_epoch: u8) -> Timestamp {
         require!(num_epoch > 0, "Number of epochs should be more than zero");
         require!(
@@ -63,7 +63,7 @@ impl Contract {
             format!("Number of epochs should be no more than {}", MAX_EPOCH_NUM)
         );
 
-        let num_epoch_from_start = (env::block_timestamp_ms() - self.start_time) / EPOCH_IN_MS;
+        let num_epoch_from_start = (from - self.start_time) / EPOCH_IN_MS;
         let next_epoch_ts = self.start_time + num_epoch_from_start * EPOCH_IN_MS + EPOCH_IN_MS;
         next_epoch_ts + num_epoch as u64 * EPOCH_IN_MS
     }
@@ -139,10 +139,8 @@ impl Contract {
  */
 #[cfg(test)]
 mod tests {
-    use rand::distributions::Uniform;
-    use rand::{distributions::Alphanumeric, Rng};
-
     use super::*;
+    use rand::{distributions::Alphanumeric, Rng};
 
     fn generate_string(len: usize) -> String {
         rand::thread_rng()
@@ -154,7 +152,7 @@ mod tests {
 
     #[test]
     fn run_add_users() {
-        let mut contract = Contract::default();
+        let mut contract = OrderStake::default();
         let rnd_str = generate_string(63);
         contract.add_user_accounts(101, 100, &rnd_str);
         assert_eq!(contract.get_users_num(), 100);
@@ -162,14 +160,14 @@ mod tests {
 
     #[test]
     fn run_simple_calc() {
-        let contract = Contract::default();
+        let contract = OrderStake::default();
         let ve_order_sum = contract.calc_ve_order_sum_simple(50_000_000);
         println!("ve_order_sum = {}", ve_order_sum);
     }
 
     // #[test]
     // fn run_get_user_order() {
-    //     let mut contract = Contract::default();
+    //     let mut contract = OrderStake::default();
     //     let rnd_str = generate_string(63);
     //     contract.add_user_accounts(101, 10, &rnd_str);
     //     let amount = contract.get_user_order(101);
@@ -178,7 +176,7 @@ mod tests {
 
     #[test]
     fn run_calc() {
-        let mut contract = Contract::default();
+        let mut contract = OrderStake::default();
         let rnd_str = generate_string(63);
         contract.add_user_accounts(101, 10, &rnd_str);
         let ve_order_sum = contract.calc_ve_order_sum();
@@ -202,12 +200,12 @@ mod tests {
             .to_owned()
             .to_lowercase();
         println!("{}", s);
-        let acc = AccountId::try_from(s).unwrap();
+        let _acc = AccountId::try_from(s).unwrap();
     }
 
     #[test]
     fn run_get_unlock_time() {
-        let contract = Contract::default();
-        let one_epoch = contract.get_unlock_time(env::block_timestamp_ms(), 1);
+        let contract = OrderStake::default();
+        let _one_epoch = contract.get_unlock_time(env::block_timestamp_ms(), 1);
     }
 }

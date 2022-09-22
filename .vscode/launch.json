@@ -7,16 +7,16 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug unit tests in library 've_limit'",
+            "name": "Debug unit tests in library 'order-stake'",
             "cargo": {
                 "args": [
                     "test",
                     "--no-run",
                     "--lib",
-                    "--package=ve_limit"
+                    "--package=order-stake"
                 ],
                 "filter": {
-                    "name": "ve_limit",
+                    "name": "order-stake",
                     "kind": "lib"
                 }
             },
